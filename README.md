@@ -1,6 +1,5 @@
 ﻿# Natural-Language-Processing-NLP-for-Parts-of-Speech-tagging
 
-# POS Tagging with Hidden Markov Models (HMM)
 
 This project implements a sequence of **Part-of-Speech (POS) Tagging** algorithms, evolving from a simple statistical baseline to a sophisticated Hidden Markov Model (HMM) capable of handling unseen words through morphological analysis. The tagger is trained and tested on the **Brown Corpus**.
 
@@ -53,3 +52,4 @@ To train and test a specific algorithm (e.g., `viterbi_2`) on the provided data:
 python3 mp7.py --train data/brown-training.txt --test data/brown-dev.txt --algorithm viterbi_2
 python3 mp7.py --train data/brown-training.txt --test data/brown-dev.txt --algorithm viterbi_1
 python3 mp7.py --train data/brown-training.txt --test data/brown-dev.txt --algorithm baseline
+
