@@ -66,65 +66,127 @@ def training(sentences):
     return init_prob, emit_prob, trans_prob
 
 def viterbi_stepforward(i, word, prev_prob, prev_predict_tag_seq, emit_prob, trans_prob):
-    """
-    Does one step of the viterbi function
-    :param i: The i'th column of the lattice/MDP (0-indexing)
-    :param word: The i'th observed word
-    :param prev_prob: A dictionary of tags to probs representing the max probability of getting to each tag at in the
-    previous column of the lattice
-    :param prev_predict_tag_seq: A dictionary representing the predicted tag sequences leading up to the previous column
-    of the lattice for each tag in the previous column
-    :param emit_prob: Emission probabilities
-    :param trans_prob: Transition probabilities
-    :return: Current best log probs leading to the i'th column for each tag, and the respective predicted tag sequences
-    """
-    log_prob = {} # This should store the log_prob for all the tags at current column (i)
-    predict_tag_seq = {} # This should store the tag sequence to reach each tag at column (i)
-    prev_sequence_tags = []
+    log_prob = {}
+    predict_tag_seq = {}
 
-    # TODO: (II)
-    # implement one step of trellis computation at column (i)
-    # You should pay attention to the i=0 special case.
-
-    if i != 0:
-        for i_tag in emit_prob:
-            max_prob = -99999999999999 # really large negative number
-            optimal_prev_tag = 'START'
-            
-            for last_i_tag in prev_prob:
-                if i_tag in trans_prob[last_i_tag]:
-                    transition = trans_prob[last_i_tag][i_tag] # prev_prob[last_i_tag] + 
-                else:
-                    transition =  emit_epsilon # prev_prob[last_i_tag] +
-                
-                if word in emit_prob[i_tag]:
-                    emmision = emit_prob[i_tag][word]
-                else: 
-                    emmision = emit_prob[i_tag]['NEWWORD']
-
-                i_prob = prev_prob[last_i_tag] + log(transition) + log(emmision)
-
-                if max_prob < i_prob:
-                    optimal_prev_tag = last_i_tag
-                    max_prob = i_prob
-
-            log_prob[i_tag] = max_prob
-            predict_tag_seq[i_tag] = prev_predict_tag_seq[optimal_prev_tag] + [optimal_prev_tag]
-
-    else:
+    if i == 0:
         for tag in emit_prob:
             if tag == 'START':
-                log_prob[tag] = 1
+                log_prob[tag] = 0 # log(1) = 0
             else:
                 log_prob[tag] = log(epsilon_for_pt)
-            predict_tag_seq[tag] = []
+            predict_tag_seq[tag] = [] # Start empty
             predict_tag_seq[tag].append(tag)
+    else:
+        for i_tag in emit_prob:
+            max_prob = -float('inf') # Use python's infinity
+            optimal_prev_tag = None
+            
+            for last_i_tag in prev_prob:
+                # 1. Handle Transition Probability
+                if i_tag in trans_prob[last_i_tag]:
+                    transition = trans_prob[last_i_tag][i_tag]
+                else:
+                    # Using epsilon_for_pt for consistency with training transition smoothing
+                    transition = epsilon_for_pt 
 
-    # for logs in log_prob:
-    #     print(logs)
-    
+                # 2. Handle Emission Probability
+                if word in emit_prob[i_tag]:
+                    emission = emit_prob[i_tag][word]
+                else: 
+                    emission = emit_prob[i_tag]['NEWWORD']
+
+                # 3. Calculate Log Probability
+                # Check for zero probabilities to avoid log crash (optional safety)
+                if transition > 0 and emission > 0:
+                    current_prob = prev_prob[last_i_tag] + log(transition) + log(emission)
+                else:
+                    current_prob = -float('inf')
+
+                if current_prob > max_prob:
+                    max_prob = current_prob
+                    optimal_prev_tag = last_i_tag
+
+            log_prob[i_tag] = max_prob
+            # Use default value [] if optimal_prev_tag is None (shouldn't happen if initialized correctly)
+            if optimal_prev_tag:
+                predict_tag_seq[i_tag] = prev_predict_tag_seq[optimal_prev_tag] + [optimal_prev_tag]
+            else:
+                predict_tag_seq[i_tag] = []
         
     return log_prob, predict_tag_seq
+
+# def viterbi_stepforward(i, word, prev_prob, prev_predict_tag_seq, emit_prob, trans_prob):
+#     """
+#     Does one step of the viterbi function
+#     :param i: The i'th column of the lattice/MDP (0-indexing)
+#     :param word: The i'th observed word
+#     :param prev_prob: A dictionary of tags to probs representing the max probability of getting to each tag at in the
+#     previous column of the lattice
+#     :param prev_predict_tag_seq: A dictionary representing the predicted tag sequences leading up to the previous column
+#     of the lattice for each tag in the previous column
+#     :param emit_prob: Emission probabilities
+#     :param trans_prob: Transition probabilities
+#     :return: Current best log probs leading to the i'th column for each tag, and the respective predicted tag sequences
+#     """
+#     log_prob = {} # This should store the log_prob for all the tags at current column (i)
+#     predict_tag_seq = {} # This should store the tag sequence to reach each tag at column (i)
+#     prev_sequence_tags = []
+
+#     # TODO: (II)
+#     # implement one step of trellis computation at column (i)
+#     # You should pay attention to the i=0 special case.
+
+#     if i != 0:
+#         for i_tag in emit_prob:
+#             max_prob = -float('inf')
+#             optimal_prev_tag = None
+            
+#             for last_i_tag in prev_prob:
+#                 if i_tag in trans_prob[last_i_tag]:
+#                     transition = trans_prob[last_i_tag][i_tag] # prev_prob[last_i_tag] + 
+#                 else:
+#                     transition =  epsilon_for_pt # prev_prob[last_i_tag] +
+                
+#                 if word in emit_prob[i_tag]:
+#                     emmision = emit_prob[i_tag][word]
+#                 else: 
+#                     emmision = emit_prob[i_tag]['NEWWORD']
+                
+#                 if transition > 0 and emmision > 0:
+#                     current_prob = prev_prob[last_i_tag] + log(transition) + log(emmision)
+#                 else:
+#                     current_prob = -float('inf')
+#                 if current_prob > max_prob:
+#                     max_prob = current_prob
+#                     optimal_prev_tag = last_i_tag
+
+#                 i_prob = prev_prob[last_i_tag] + log(transition) + log(emmision)
+
+#                 # if max_prob < i_prob:
+#                 #     optimal_prev_tag = last_i_tag
+#                 #     max_prob = i_prob
+
+#             log_prob[i_tag] = max_prob
+#             if optimal_prev_tag:
+#                 predict_tag_seq[i_tag] = prev_predict_tag_seq[optimal_prev_tag] + [optimal_prev_tag]
+#             else:
+#                 predict_tag_seq[i_tag] = []
+
+#     else:
+#         for tag in emit_prob:
+#             if tag == 'START':
+#                 log_prob[tag] = 0
+#             else:
+#                 log_prob[tag] = log(epsilon_for_pt)
+#             predict_tag_seq[tag] = []
+#             predict_tag_seq[tag].append(tag)
+
+#     # for logs in log_prob:
+#     #     print(logs)
+    
+        
+#     return log_prob, predict_tag_seq
 
 def viterbi_1(train, test, get_probs=training):
     '''

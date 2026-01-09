@@ -3,6 +3,8 @@ import sys
 
 from baseline import baseline
 from viterbi_1 import viterbi_1
+from viterbi_2 import viterbi_2
+from viterbi_3 import viterbi_3
 
 import utils
 
@@ -18,7 +20,7 @@ def main(args):
     print("Loaded dataset")
     print()
 
-    algorithms = {"baseline": baseline, "viterbi_1": viterbi_1}
+    algorithms = {"baseline": baseline, "viterbi_1": viterbi_1, "viterbi_2": viterbi_2, "viterbi_3": viterbi_3}
     algorithm = algorithms[args.algorithm]
     
     print("Running {}...".format(args.algorithm))
