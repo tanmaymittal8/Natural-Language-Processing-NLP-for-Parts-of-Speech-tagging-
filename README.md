@@ -49,4 +49,7 @@ The models were evaluated on the Brown Corpus development set. The progression s
 To train and test a specific algorithm (e.g., `viterbi_2`) on the provided data:
 
 ```bash
+
 python3 mp7.py --train data/brown-training.txt --test data/brown-dev.txt --algorithm viterbi_2
+python3 mp7.py --train data/brown-training.txt --test data/brown-dev.txt --algorithm viterbi_1
+python3 mp7.py --train data/brown-training.txt --test data/brown-dev.txt --algorithm baseline
